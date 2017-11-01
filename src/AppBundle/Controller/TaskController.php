@@ -254,7 +254,11 @@ class TaskController extends Controller
 
             $dql .= "ORDER BY t.id $order";
 
-            $query = $em->createQuery($dql)->setParameter('filter', "$filter");
+            $query = $em->createQuery($dql);
+
+            if ($filter != null) {
+                $query->setParameter('filter', "$filter");
+            }
 
             if (!empty($query)) {
                 $query->setParameter('search', "%$search%");
