@@ -240,39 +240,33 @@ class TaskController extends Controller
             }
 
             if ($search != null) {
-                $dql = "SELECT t FROM AppBundle:Tasks t"
+                $dql = "SELECT t FROM AppBundle:Tasks t "
                     . "WHERE t.user = $identity->sub AND "
-                    . "(t.title LIKE :search OR t.description LIKE :search )";
-                if ($filter != null){
-                    $dql .= "AND t.status = :filter";
-                }
+                    . "(t.title LIKE :search OR t.description LIKE :search ) ";
             } else {
-                $dql = "SELECT t FROM appBundle.Tasks t";
-                if ($filter != null){
-                    $dql .= "AND t.status = :filter";
-                }
+                $dql = "SELECT t FROM appBundle.Tasks t "
+                    . "WHERE t.user = $identity->sub ";
             }
 
-
-
-//            $task = $em->getRepository('AppBundle:Tasks')->findOneBy(array(
-//                'id' => $id
-//            ));
-
-            if ($task && is_object($task) && $identity->sub == $task->getUser()->getId()) {
-                $data = array(
-                    'status' => 'success',
-                    'code' => 200,
-                    'data' => $task
-                );
-            } else {
-                $data = array(
-                    'status' => 'error',
-                    'code' => 404,
-                    'data' => 'Task not found'
-                );
+            if ($filter != null) {
+                $dql .= "AND t.status = :filter ";
             }
 
+            $dql .= "ORDER BY t.id $order";
+
+            $query = $em->createQuery($dql)->setParameter('filter', "$filter");
+
+            if (!empty($query)) {
+                $query->setParameter('search', "%$search%");
+            }
+
+            $tasks = $query->getResult();
+
+            $data = array(
+                'status' => 'success',
+                'code' => 200,
+                'data' => $tasks
+            );
         } else {
             $data = array(
                 'status' => 'error',
